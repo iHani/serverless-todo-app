@@ -4,6 +4,8 @@ import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } f
 
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { createTodo } from '../../businessLogic/todos'
+import { parseUserId } from '../../auth/utils';
+
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const newTodo: CreateTodoRequest = JSON.parse(event.body)
@@ -14,8 +16,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const authorization = event.headers.Authorization
   const split = authorization.split(' ')
   const jwtToken = split[1]
-  const newItem = await createTodo(newTodo, jwtToken)
-  console.log('newItem = ', newItem)
+  const userId = parseUserId(jwtToken);
+  const newItem = await createTodo(newTodo, userId)
 
   return {
     statusCode: 201,

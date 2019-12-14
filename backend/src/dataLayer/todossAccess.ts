@@ -1,32 +1,19 @@
-import * as AWS from 'aws-sdk'
-import { DocumentClient } from 'aws-sdk/clients/dynamodb'
+import * as AWS from 'aws-sdk';
+import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
 import { TodoItem } from '../models/TodoItem';
-// import { DeleteTodoItem } from '../models/DeleteTodoItem'
-
-const todosTable = process.env.TODOS_TABLE
-// const todoIdIndex = process.env.TODO_INDEX
 
 export class TodoAccess {
 
   constructor(
     private readonly docClient: DocumentClient = createDynamoDBClient(),
-    private readonly TODOS_TABLE = todosTable) {
-  }
+    private readonly todosTable = process.env.TODOS_TABLE) { }
 
   async getAllTodos(userId: string): Promise<TodoItem[]> {
     console.log('Getting all todos for user:', userId);
 
-
     const result = await this.docClient.query({
-      TableName: this.TODOS_TABLE,
-      // IndexName: this.TODO_INDEX,
-      // KeyConditionExpression: 'userId = :userId',
-      // ExpressionAttributeValues: {
-      //   ':userId': userId
-      // },
-
-      //
+      TableName: this.todosTable,
       KeyConditionExpression: '#userId = :userId',
       ExpressionAttributeNames: {
         '#userId': 'userId'
@@ -34,42 +21,66 @@ export class TodoAccess {
       ExpressionAttributeValues: {
         ':userId': userId
       },
-      //
-    }).promise()
+    }).promise();
 
-    console.log("getAllTodos result:", result);
-
-    const todos = result.Items
-    return todos as TodoItem[]
+    const todos = result.Items;
+    console.log("getAllTodos result:", todos);
+    return todos as TodoItem[];
   }
 
   async createTodo(todo) {
-    await this.docClient.put({
-      TableName: this.TODOS_TABLE,
-      Item: todo
-    }).promise()
+    console.log("Creating Todo:", todo);
 
+    await this.docClient.put({
+      TableName: this.todosTable,
+      Item: todo
+    }).promise();
+
+    console.log("Todo created:", todo);
     return todo;
   }
 
   async deleteTodo(todoId: string, userId: string): Promise<string> {
+    console.log("Deleting todo:", todoId);
+
     await this.docClient.delete({
-      TableName: this.TODOS_TABLE,
+      TableName: this.todosTable,
       Key: {
-        todoId: todoId,
-        userId: userId
+        todoId,
+        userId
       },
-      ConditionExpression: "todoId = :todoId",
+    }).promise();
+
+    console.log("Todo deleted. todoId:", todoId);
+    return "";
+  }
+
+  async updateTodo(userId: string, todoId: string, updatedTodo): Promise<string> {
+    console.log("updating todo:", todoId, updatedTodo);
+
+    await this.docClient.update({
+      TableName: this.todosTable,
+      Key: {
+        todoId,
+        userId,
+      },
+      UpdateExpression: 'set #name = :name, dueDate = :duedate, done = :done',
       ExpressionAttributeValues: {
-        ':todoId': todoId
+        ':name': updatedTodo.name,
+        ':duedate': updatedTodo.dueDate,
+        ':done': updatedTodo.done
+      },
+      ExpressionAttributeNames: {
+        "#name": "name"
       }
     }).promise()
 
-    console.log("Todo deleted. todoId:", todoId);
+    console.log("Todo updated:", updatedTodo);
 
-    return ""
+    return updatedTodo;
   }
 }
+
 
 function createDynamoDBClient() {
   if (process.env.IS_OFFLINE) {

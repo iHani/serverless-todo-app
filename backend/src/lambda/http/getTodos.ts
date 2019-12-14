@@ -10,14 +10,14 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   const authorization = event.headers.Authorization;
   const jwtToken = authorization.split(' ')[1];
-
   const userId = parseUserId(jwtToken);
   const todos = await getAllTodos(userId);
 
   return {
     statusCode: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({
       todos
