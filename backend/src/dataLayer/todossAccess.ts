@@ -99,14 +99,14 @@ export class TodoAccess {
   }
 
   async generateUploadUrl(todoId: string): Promise<string> {
-    const signedURL = s3.getSignedUrl('putObject', {
+    const uploadUrl = s3.getSignedUrl('putObject', {
       Bucket: bucketName,
       Key: todoId,
       Expires: urlExpiration
     })
 
-    console.log('Generated signed URL', signedURL)
-    return JSON.stringify(signedURL)
+    console.log('Generated signed URL', uploadUrl)
+    return JSON.stringify(uploadUrl)
   }
 }
 
