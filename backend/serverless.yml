@@ -20,7 +20,6 @@ provider:
     CONNECTIONS_TABLE: Connections-${self:provider.stage}
     IMAGES_S3_BUCKET: serverless-todo-images-sd4dfj98kjsoise-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
-    THUMBNAILS_S3_BUCKET: serverless-todo-thumbnail-${self:provider.stage}
     AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
     AUTH_0_SECRET_FIELD: AUTH_0_SECRET
     AUTH_0_SECRET: Vy7qW_GDRepPbCdRv2-cTsh152ije2fOvPwntdc33UNvSvtqBcCVO7x66kIqf3Ta
@@ -63,7 +62,6 @@ functions:
           authorizer: Auth
           # reqValidatorName: RequestBodyValidator
           documentation:
-            summary: Get the Todo list
             description: Get the Todo list
     deploymentSettings:
       type: Linear10PercentEvery1Minute
@@ -72,12 +70,10 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:Query
-          - dynamodb:Scan
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
       - Effect: Allow
         Action:
           - dynamodb:Query
-          - dynamodb:Scan
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODO_INDEX}
 
   # TODO: Configure this function
@@ -97,7 +93,6 @@ functions:
           authorizer: Auth
           # reqValidatorName: RequestBodyValidator
           documentation:
-            summary: Create a new todo
             description: Create a new todo
             requestModels:
               'application/json': CreateTodoRequest
@@ -157,16 +152,28 @@ functions:
       type: Linear10PercentEvery1Minute
       alias: Live
 
-  # # TODO: Configure this function
-  # GenerateUploadUrl:
-  #   handler: src/lambda/http/generateUploadUrl.handler
-  #   events:
-  #     - http:
-  #         method: post
-  #         path: todos/{todoId}/attachment
+  # TODO: Configure this function
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
+    events:
+      - http:
+          method: post
+          path: todos/{todoId}/attachment
+          cors: true
+          authorizer: Auth
+          documentation:
+            description: Generate a signed URL
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+        Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*'
+    deploymentSettings:
+      type: Linear10PercentEvery1Minute
+      alias: Live
 
 resources:
-    # TODO: Add any necessary AWS resources
+  # TODO: Add any necessary AWS resources
   Resources:
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
@@ -179,15 +186,6 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: ApiGatewayRestApi
-
-    # RequestBodyValidator:
-    #   Type: AWS::ApiGateway::RequestValidator
-    #   Properties:
-    #     Name: 'request-body-validator'
-    #     RestApiId:
-    #       Ref: ApiGatewayRestApi
-    #     ValidateRequestBody: true
-    #     ValidateRequestParameters: false
 
     TodosDynamoDBTable:
       Type: AWS::DynamoDB::Table
@@ -215,87 +213,11 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-
-    # WebSocketConnectionsDynamoDBTable:
-    #   Type: AWS::DynamoDB::Table
+    # RequestBodyValidator:
+    #   Type: AWS::ApiGateway::RequestValidator
     #   Properties:
-    #     AttributeDefinitions:
-    #       -
-    #         AttributeName: id
-    #         AttributeType: S
-    #     KeySchema:
-    #       -
-    #         AttributeName: id
-    #         KeyType: HASH
-    #     BillingMode: PAY_PER_REQUEST
-    #     TableName: ${self:provider.environment.CONNECTIONS_TABLE}
-
-
-
-    # AttachmentsBucket:
-    #   Type: AWS::S3::Bucket
-    #   DependsOn: SNSTopicPolicy
-    #   Properties:
-    #     BucketName: ${self:provider.environment.THUMBNAILS_S3_BUCKET}
-    #     NotificationConfiguration:
-    #       TopicConfigurations:
-    #         - Event: s3:ObjectCreated:Put
-    #           Topic: !Ref ImagesTopic
-    #     CorsConfiguration:
-    #       CorsRules:
-    #         -
-    #           AllowedOrigins:
-    #             - '*'
-    #           AllowedHeaders:
-    #             - '*'
-    #           AllowedMethods:
-    #             - GET
-    #             - PUT
-    #             - POST
-    #             - DELETE
-    #             - HEAD
-    #             - PATCH
-    #           MaxAge: 3000
-
-    # BucketPolicy:
-    #   Type: AWS::S3::BucketPolicy
-    #   Properties:
-    #     PolicyDocument:
-    #       Id: MyPolicy
-    #       Version: "2012-10-17"
-    #       Statement:
-    #         - Sid: PublicReadForGetBucketObjects
-    #           Effect: Allow
-    #           Principal: '*'
-    #           Action: 's3:GetObject'
-    #           Resource: 'arn:aws:s3:::${self:provider.environment.THUMBNAILS_S3_BUCKET}/*'
-    #     Bucket: !Ref AttachmentsBucket
-
-    SNSTopicPolicy:
-      Type: AWS::SNS::TopicPolicy
-      Properties:
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                AWS: "*"
-              Action: sns:Publish
-              Resource:
-                !Ref ImagesTopic
-              Condition:
-                ArnLike:
-                  AWS:SourceArn: arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}
-        Topics:
-          - !Ref ImagesTopic
-
-    ThumbnailsBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:provider.environment.THUMBNAILS_S3_BUCKET}
-
-    ImagesTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: Image bucket topic
-        TopicName: ${self:custom.topicName}
+    #     Name: 'request-body-validator'
+    #     RestApiId:
+    #       Ref: ApiGatewayRestApi
+    #     ValidateRequestBody: true
+    #     ValidateRequestParameters: false

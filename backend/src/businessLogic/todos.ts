@@ -4,14 +4,13 @@ import { TodoAccess } from '../dataLayer/todossAccess'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { TodoItem } from '../models/TodoItem'
 
-const todoAccess = new TodoAccess();
+const todoAccess = new TodoAccess()
 
 // createTodo
 export async function createTodo(
   createTodoRequest: CreateTodoRequest,
   userId: string
 ): Promise<TodoItem> {
-
   const itemId = uuid.v4()
   const todo = {
     todoId: itemId,
@@ -20,9 +19,9 @@ export async function createTodo(
     dueDate: createTodoRequest.dueDate,
     done: false,
     createdAt: new Date().toISOString()
-  };
+  }
 
-  console.log("New todo:", userId, todo);
+  console.log('New todo:', userId, todo)
   return await todoAccess.createTodo(todo)
 }
 
@@ -36,7 +35,6 @@ export async function deleteTodo(
   todoId: string,
   userId: string
 ): Promise<string> {
-
   return await todoAccess.deleteTodo(todoId, userId)
 }
 
@@ -44,8 +42,12 @@ export async function deleteTodo(
 export async function updateTodo(
   userId: string,
   todoId: string,
-  updatedTodo,
+  updatedTodo
 ): Promise<string> {
-
   return await todoAccess.updateTodo(userId, todoId, updatedTodo)
+}
+
+// generateUrl
+export async function generateUploadUrl(todoId: string): Promise<string> {
+  return await todoAccess.generateUploadUrl(todoId)
 }
