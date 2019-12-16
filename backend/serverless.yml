@@ -79,12 +79,6 @@ functions:
   # TODO: Configure this function
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
-    iamRoleStatementsInherit: true
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     events:
       - http:
           method: post
@@ -99,6 +93,16 @@ functions:
     deploymentSettings:
       type: Linear10PercentEvery1Minute
       alias: Live
+    # iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/${self:provider.environment.TODO_INDEX}
 
   # TODO: Configure this function
   UpdateTodo:

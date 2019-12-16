@@ -31,13 +31,13 @@ export class TodoAccess {
       })
       .promise()
 
-    const todos = result.Items
-    console.log('getAllTodos result:', todos)
-    return todos as TodoItem[]
+    const items = result.Items
+    console.log('getAllTodos result:', items)
+    return items as TodoItem[]
   }
 
-  async createTodo(todo) {
-    console.log('Creating Todo:', todo)
+  async CreateTodo(todo): Promise<TodoItem> {
+    console.log('creating todo:', todo)
 
     await this.docClient
       .put({
@@ -46,7 +46,6 @@ export class TodoAccess {
       })
       .promise()
 
-    console.log('Todo created:', todo)
     return todo
   }
 
@@ -99,14 +98,16 @@ export class TodoAccess {
   }
 
   async generateUploadUrl(todoId: string): Promise<string> {
-    const uploadUrl = s3.getSignedUrl('putObject', {
+    console.log('generating todo', todoId)
+
+    const url = s3.getSignedUrl('putObject', {
       Bucket: bucketName,
       Key: todoId,
       Expires: urlExpiration
     })
 
-    console.log('Generated signed URL', uploadUrl)
-    return JSON.stringify(uploadUrl)
+    console.log('generated upload url:', url)
+    return JSON.stringify(url)
   }
 }
 

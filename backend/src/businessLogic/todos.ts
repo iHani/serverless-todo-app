@@ -7,22 +7,23 @@ import { TodoItem } from '../models/TodoItem'
 const todoAccess = new TodoAccess()
 
 // createTodo
-export async function createTodo(
-  createTodoRequest: CreateTodoRequest,
-  userId: string
-): Promise<TodoItem> {
-  const itemId = uuid.v4()
-  const todo = {
-    todoId: itemId,
-    userId: userId,
-    name: createTodoRequest.name,
-    dueDate: createTodoRequest.dueDate,
+export async function createTodo(newTodo: CreateTodoRequest, userId: string) {
+  const item = {
+    // todoId: itemId,
+    // userId: userId,
+    // name: createTodoRequest.name,
+    // dueDate: createTodoRequest.dueDate,
+    // done: false,
+    // createdAt: new Date().toISOString()
+    userId,
+    todoId: uuid.v4(),
     done: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    ...newTodo
   }
 
-  console.log('New todo:', userId, todo)
-  return await todoAccess.createTodo(todo)
+  console.log('New todo:', userId, item)
+  return await todoAccess.CreateTodo(item)
 }
 
 // getAllTodos

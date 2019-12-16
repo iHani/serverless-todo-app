@@ -7,8 +7,6 @@
       "type": "string"
     }
   },
-  "required": [
-    "title"
-  ],
-  "additionalProperties": false
+  "required": ["name", "dueDate"],
+  "additionalProperties": true
 }
