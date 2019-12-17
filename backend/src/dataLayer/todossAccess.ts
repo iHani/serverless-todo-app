@@ -107,7 +107,7 @@ export class TodoAccess {
     })
 
     console.log('generated upload url:', url)
-    return JSON.stringify(url)
+    return url
   }
 }
 
@@ -116,7 +116,7 @@ function createDynamoDBClient() {
     console.log('Creating a local DynamoDB instance')
     return new AWS.DynamoDB.DocumentClient({
       region: 'localhost',
-      endpoint: 'http://localhost:8000'
+      endpoint: 'http://localhost:3000'
     })
   }
 

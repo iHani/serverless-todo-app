@@ -5,20 +5,17 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { TodoItem } from '../models/TodoItem'
 
 const todoAccess = new TodoAccess()
+const bucketName = process.env.IMAGES_S3_BUCKET
 
 // createTodo
 export async function createTodo(newTodo: CreateTodoRequest, userId: string) {
+  const todoId = uuid.v4()
   const item = {
-    // todoId: itemId,
-    // userId: userId,
-    // name: createTodoRequest.name,
-    // dueDate: createTodoRequest.dueDate,
-    // done: false,
-    // createdAt: new Date().toISOString()
     userId,
-    todoId: uuid.v4(),
+    todoId,
     done: false,
     createdAt: new Date().toISOString(),
+    attachmentUrl: `https://${bucketName}.s3.amazonaws.com/${todoId}`,
     ...newTodo
   }
 
